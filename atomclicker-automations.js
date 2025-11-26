@@ -70,6 +70,7 @@
             border-radius:5px;
             cursor:pointer;
         ">Stop All</button>
+        <p>Yellow Orb Logs:</p>
     `;
 
     document.body.appendChild(ui);
