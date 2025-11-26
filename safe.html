@@ -88,11 +88,17 @@
   }
   button.redirect-button:active{ transform: translateY(1px) scale(.997); }
   button.redirect-button:hover{ background: rgba(0,0,20,0.5); }
+  .avatar-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+  }
   .new-image {
     width: 88px;
     height: 88px;
     border-radius: 50%;
-    margin: 14px 0;
     box-shadow: 0 0 30px var(--neon-dim);
     border: 2px solid rgba(0,191,255,0.1);
     user-select: none;
@@ -317,7 +323,10 @@
     <p>blobby-boi's mit viewer thing not mine</p>
     <input id="url" type="text" placeholder="Enter URL or Google Search" />
     <button class="redirect-button" id="launchBtn">LAUNCH</button>
-    <img class="new-image" src="https://raw.githubusercontent.com/justqnoo/assets/refs/heads/main/Screenshot%202025-11-25%2020.12.09.png" alt="avatar">
+    <div class="avatar-container">
+      <img class="new-image" src="https://raw.githubusercontent.com/justqnoo/assets/refs/heads/main/Screenshot%202025-11-25%2020.12.09.png" alt="byzan">
+      <img class="new-image" src="https://avatars.githubusercontent.com/u/134225987?v=4" alt="blobby boi">
+    </div>
   </div>
   <div class="rectangle" id="bookmarkRect">
     <div class="bookmark-container" id="bookmarkButtons"></div>
