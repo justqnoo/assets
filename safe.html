@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blobbypass+</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Varela+Round:wght@400&display=swap');
+  :root{
+    --neon: #00bfff;
+    --neon-dim: rgba(0,191,255,0.18);
+    --bg: #000;
+    --star: #fff;
+    --star-glow: rgba(255,255,255,0.5);
+  }
+  html,body{height:100%;}
+  body {
+    margin: 0;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Varela Round', sans-serif;
+    color: var(--neon);
+  }
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: block;
+  }
+  .container {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    pointer-events: auto;
+  }
+  .text {
+    font-size: clamp(40px, 8vw, 96px);
+    font-weight: 700;
+    user-select: none;
+    color: var(--neon);
+    text-shadow:
+      0 0 6px var(--neon),
+      0 0 20px rgba(0,191,255,0.12),
+      0 0 40px rgba(0,191,255,0.06);
+    letter-spacing: 2px;
+    margin: 0 0 18px 0;
+  }
+  input#url {
+    width: min(760px, 86vw);
+    max-width: 1000px;
+    height: 72px;
+    font-size: 30px;
+    font-family: 'Varela Round', sans-serif;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 2px solid var(--neon);
+    background: rgba(0,0,0,0.7);
+    color: var(--neon);
+    outline: none;
+    box-shadow: 0 0 20px var(--neon-dim);
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  input#url::placeholder{ color: rgba(0,191,255,0.4); user-select: none;}
+  button.redirect-button {
+    width: 320px;
+    height: 80px;
+    font-size: 35px;
+    user-select: none;
+    font-family: 'Varela Round', sans-serif;
+    font-weight: bold;
+    border-radius: 10px;
+    border: 2px solid var(--neon);
+    background: rgba(0,0,0,0.6);
+    color: var(--neon);
+    cursor: pointer;
+    box-shadow: 0 0 30px var(--neon-dim);
+    transition: transform .08s ease, background .12s ease;
+    margin-bottom: 12px;
+  }
+  button.redirect-button:active{ transform: translateY(1px) scale(.997); }
+  button.redirect-button:hover{ background: rgba(0,0,20,0.5); }
+  .new-image {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    margin: 14px 0;
+    box-shadow: 0 0 30px var(--neon-dim);
+    border: 2px solid rgba(0,191,255,0.1);
+    user-select: none;
+  }
+  .toggle-bar {
+    position: fixed;
+    user-select: none;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    width: calc(100% - 28px);
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, rgba(0,0,10,0.6), rgba(0,0,18,0.8));
+    border: 1px solid rgba(0,191,255,0.06);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
+  .bookmarks-text {
+    position: static;
+    color: var(--neon);
+    font-size: 18px;
+    user-select: none;
+    text-shadow: 0 0 10px rgba(0,191,255,0.12);
+    font-family: 'Varela Round', sans-serif;
+  }
+  .toggle-button {
+    position: absolute;
+    right: 14px;
+    background: transparent;
+    user-select: none;
+    border: 1px solid var(--neon);
+    color: var(--neon);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .rectangle {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 74px;
+    z-index: 6;
+    width: calc(100% - 48px);
+    max-width: 1200px;
+    min-height: 120px;
+    height: auto;
+    display: none;
+    background: linear-gradient(180deg, rgba(0,0,12,0.6), rgba(0,0,8,0.9));
+    border: 1px solid rgba(0,191,255,0.06);
+    padding: 12px;
+    border-radius: 10px;
+    align-items: center;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.6);
+  }
+  .bookmark-container {
+    display: flex;
+    gap: 10px;
+    user-select: none;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    align-items: center;
+    flex: 1;
+  }
+  .bookmark-button {
+    min-width: 160px;
+    user-select: none;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(0,191,255,0.12);
+    color: var(--neon);
+    padding: 10px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    flex-direction: column;
+    text-align: center;
+    box-shadow: 0 0 18px rgba(0,191,255,0.04);
+    font-family: 'Varela Round', sans-serif;
+  }
+  .bookmark-button img{ width: 28px; height: 28px; display:block; margin-bottom:6px; }
+  .bookmark-button span{ font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+  .bookmark-button:hover{ transform: translateY(-2px); }
+  .delete-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .edit-button {
+    position: absolute;
+    user-select: none;
+    top: 6px;
+    left: 6px;
+    background: transparent;
+    border: none;
+    color: #ffd34d;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .add-bookmark-button {
+    margin-left: 12px;
+    user-select: none;
+    min-width: 160px;
+    border-radius: 8px;
+    border: 1px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    font-family: 'Varela Round', sans-serif;
+  }
+  .prompt-box {
+    width: 320px;
+    user-select: none;
+    background: #000208;
+    border: 1px solid rgba(0,191,255,0.12);
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+    text-align: center;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .prompt-message { color: var(--neon); font-size: 18px; margin-bottom: 10px;}
+  .prompt-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(0,191,255,0.12);
+    color: var(--neon);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .prompt-button {
+    padding: 8px 14px;
+    user-select: none;
+    border-radius: 6px;
+    border: 1px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    cursor: pointer;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .prompt-button:hover{ background: rgba(0,0,20,0.4); }
+  .close-button {
+    position: absolute;
+    user-select: none;
+    right: 18px;
+    top: 10px;
+    background: transparent;
+    border: none;
+    color: var(--neon);
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Varela Round', sans-serif;
+  }
+  .edit-overlay{
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 45;
+    background: rgba(0,0,0,0.7);
+  }
+  .edit-options{
+    background:#000210;
+    padding: 18px;
+    border-radius: 8px;
+    border:1px solid rgba(0,191,255,0.12);
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .edit-options button{
+    padding:8px 12px;
+    user-select: none;
+    border-radius:6px;
+    border:1px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    cursor:pointer;
+    font-family: 'Varela Round', sans-serif;
+  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,191,255,0.12); border-radius: 6px; }
+</style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="container" id="app">
+    <div class="text">byzan.lol</div>
+    <p>blobby-boi's mit viewer thing not mine</p>
+    <input id="url" type="text" placeholder="Enter URL or Google Search" />
+    <button class="redirect-button" id="launchBtn">LAUNCH</button>
+    <img class="new-image" src="https://raw.githubusercontent.com/justqnoo/assets/refs/heads/main/Screenshot%202025-11-25%2020.12.09.png" alt="avatar">
+  </div>
+  <div class="rectangle" id="bookmarkRect">
+    <div class="bookmark-container" id="bookmarkButtons"></div>
+    <button class="add-bookmark-button" id="addBookmarkBtn">Save as Bookmark</button>
+  </div>
+  <div class="toggle-bar" id="toggleBar">
+    <div class="bookmarks-text">Bookmarks</div>
+    <button class="toggle-button" id="toggleBtn">+</button>
+  </div>
+  <div class="overlay" id="overlay">
+    <div class="prompt-box">
+      <button class="close-button" id="promptClose">✕</button>
+      <div class="prompt-message" id="prompt-message">Prompt</div>
+      <input class="prompt-input" id="prompt-input" type="text" />
+      <div style="display:flex; justify-content:center;">
+        <button class="prompt-button" id="promptOk">OK</button>
+      </div>
+    </div>
+  </div>
+  <div class="edit-overlay" id="editOverlay">
+    <div class="edit-options" id="editOptions">
+      <button id="editNameBtn">Edit Name</button>
+      <button id="editUrlBtn">Edit URL</button>
+      <button id="editCloseBtn">Close</button>
+    </div>
+  </div>
+<script>
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let DPR = window.devicePixelRatio || 1;
+function resizeCanvas(){
+  DPR = window.devicePixelRatio || 1;
+  canvas.width = Math.floor(window.innerWidth * DPR);
+  canvas.height = Math.floor(window.innerHeight * DPR);
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  initParticles();
+  drawStars();
+}, {passive:true});
+resizeCanvas();
+class Particle {
+  constructor(w,h){
+    this.reset(w,h);
+  }
+  reset(w,h){
+    this.x = Math.random()*w;
+    this.y = Math.random()*h;
+    this.r = 0.5 + Math.random()*1.5;
+  }
+  draw(ctx){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+let particles = [];
+const PARTICLE_COUNT = Math.min(300, Math.floor((window.innerWidth * window.innerHeight) / 3000));
+function initParticles(){
+  particles = [];
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  for(let i=0;i<PARTICLE_COUNT;i++) particles.push(new Particle(w,h));
+}
+function drawStars(){
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  ctx.clearRect(0,0,canvas.width, canvas.height);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = 'var(--star)';
+  ctx.shadowColor = 'var(--star-glow)';
+  ctx.shadowBlur = 2;
+  for(let i=0; i<particles.length; i++){
+    const p = particles[i];
+    p.draw(ctx);
+  }
+  ctx.shadowBlur = 0;
+}
+initParticles();
+drawStars();
+let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+const bookmarkButtons = document.getElementById('bookmarkButtons');
+const bookmarkRect = document.getElementById('bookmarkRect');
+const toggleBtn = document.getElementById('toggleBtn');
+const overlay = document.getElementById('overlay');
+const promptMessage = document.getElementById('prompt-message');
+const promptInput = document.getElementById('prompt-input');
+const promptOk = document.getElementById('promptOk');
+const promptClose = document.getElementById('promptClose');
+const addBookmarkBtn = document.getElementById('addBookmarkBtn');
+const editOverlay = document.getElementById('editOverlay');
+const editOptions = document.getElementById('editOptions');
+const editNameBtn = document.getElementById('editNameBtn');
+const editUrlBtn = document.getElementById('editUrlBtn');
+const editCloseBtn = document.getElementById('editCloseBtn');
+let promptResolve = null;
+let pendingEditBookmark = null;
+function renderBookmarkButtons(){
+  bookmarkButtons.innerHTML = '';
+  if(bookmarks.length === 0){
+    const hint = document.createElement('div');
+    hint.style.color = 'rgba(0,191,255,0.5)';
+    hint.style.padding = '12px';
+    hint.textContent = 'No bookmarks yet — save a bookmark to see it here.';
+    bookmarkButtons.appendChild(hint);
+    return;
+  }
+  bookmarks.forEach((bm, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'bookmark-button';
+    const favicon = document.createElement('img');
+    favicon.src = getFaviconURL(bm.url);
+    favicon.alt = 'icon';
+    btn.appendChild(favicon);
+    const span = document.createElement('span');
+    span.textContent = bm.name;
+    btn.appendChild(span);
+    const del = document.createElement('button');
+    del.className = 'delete-button';
+    del.textContent = '✕';
+    del.title = 'Delete';
+    del.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      deleteBookmark(idx);
+    });
+    btn.appendChild(del);
+    const ed = document.createElement('button');
+    ed.className = 'edit-button';
+    ed.textContent = '✎';
+    ed.title = 'Edit';
+    ed.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      openEditMenu(idx, ev);
+    });
+    btn.appendChild(ed);
+    btn.addEventListener('click', ()=>{
+      window.location.href = bm.url;
+    });
+    bookmarkButtons.appendChild(btn);
+  });
+}
+renderBookmarkButtons();
+function saveBookmarks(){ localStorage.setItem('bookmarks', JSON.stringify(bookmarks)); }
+function deleteBookmark(index){
+  bookmarks.splice(index,1);
+  saveBookmarks();
+  renderBookmarkButtons();
+}
+function getFaviconURL(url){
+  try{
+    return 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent((new URL(url)).hostname);
+  }catch(e){
+    return 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(url);
+  }
+}
+toggleBtn.addEventListener('click', ()=>{
+  if(bookmarkRect.style.display === 'flex'){
+    bookmarkRect.style.display = 'none';
+    toggleBtn.textContent = '+';
+  } else {
+    bookmarkRect.style.display = 'flex';
+    bookmarkRect.style.alignItems = 'center';
+    toggleBtn.textContent = '-';
+  }
+});
+function customPrompt(message, defaultValue){
+  promptMessage.textContent = message || '';
+  promptInput.value = defaultValue || '';
+  overlay.style.display = 'flex';
+  promptInput.focus();
+  return new Promise((resolve)=>{
+    promptResolve = resolve;
+  });
+}
+promptOk.addEventListener('click', ()=>{
+  if(promptResolve) promptResolve(promptInput.value.trim());
+  promptResolve = null;
+  overlay.style.display = 'none';
+});
+promptClose.addEventListener('click', ()=>{
+  if(promptResolve) promptResolve(null);
+  promptResolve = null;
+  overlay.style.display = 'none';
+});
+overlay.addEventListener('click', (ev)=>{
+  if(ev.target === overlay){
+    if(promptResolve) promptResolve(null);
+    promptResolve = null;
+    overlay.style.display = 'none';
+  }
+});
+promptInput.addEventListener('keydown', (e)=> {
+  if(e.key === 'Enter'){ promptOk.click(); }
+});
+addBookmarkBtn.addEventListener('click', async ()=>{
+  const input = document.getElementById('url').value.trim();
+  const name = await customPrompt('Enter bookmark name:');
+  if(!name) return;
+  let urlToSave = input;
+  if(!isValidURL(urlToSave)){
+    urlToSave = 'https://www.google.com/search?q=' + encodeURIComponent(urlToSave);
+  } else if(!urlToSave.startsWith('http')){
+    urlToSave = 'https://' + urlToSave;
+  }
+  bookmarks.push({ name: name, url: urlToSave });
+  saveBookmarks();
+  renderBookmarkButtons();
+});
+function openEditMenu(index){
+  pendingEditBookmark = index;
+  editOverlay.style.display = 'flex';
+}
+editCloseBtn.addEventListener('click', ()=>{ editOverlay.style.display='none'; pendingEditBookmark = null; });
+editNameBtn.addEventListener('click', async ()=>{
+  const idx = pendingEditBookmark;
+  if(idx == null) return;
+  editOverlay.style.display = 'none';
+  const newName = await customPrompt('Enter new name:', bookmarks[idx].name);
+  if(newName) { bookmarks[idx].name = newName; saveBookmarks(); renderBookmarkButtons(); }
+  pendingEditBookmark = null;
+});
+editUrlBtn.addEventListener('click', async ()=>{
+  const idx = pendingEditBookmark;
+  if(idx == null) return;
+  editOverlay.style.display = 'none';
+  const newUrl = await customPrompt('Enter new URL:', bookmarks[idx].url);
+  if(!newUrl) { pendingEditBookmark = null; return; }
+  if(!isValidURL(newUrl)){
+    bookmarks[idx].url = 'https://www.google.com/search?q=' + encodeURIComponent(newUrl);
+  } else {
+    let n = newUrl;
+    if(!n.startsWith('http')) n = 'https://' + n;
+    bookmarks[idx].url = n;
+  }
+  saveBookmarks();
+  renderBookmarkButtons();
+  pendingEditBookmark = null;
+});
+function isValidURL(str) {
+  const pattern = /^(https?:\/\/)?(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|localhost)(:[0-9]+)?(\/.*)?$/;
+  return pattern.test(str);
+}
+const launchBtn = document.getElementById('launchBtn');
+launchBtn.addEventListener('click', () => { redirect(); });
+function redirect(){
+  const raw = document.getElementById('url').value.trim();
+  let url;
+  if(!raw){
+    document.getElementById('url').focus();
+    return;
+  }
+  if(isValidURL(raw)){
+    url = raw.startsWith('http') ? raw : ('https://' + raw);
+  } else {
+    url = 'https://www.google.com/search?q=' + encodeURIComponent(raw);
+  }
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.src = 'about:blank';
+    iframe.style.position = 'fixed';
+    iframe.style.top = 0;
+    iframe.style.left = 0;
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.style.zIndex = 9999;
+    document.body.appendChild(iframe);
+    setTimeout(()=> { window.location.href = url; }, 220);
+  } catch(e){
+    window.location.href = url;
+  }
+}
+document.getElementById('url').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') redirect();
+});
+(function init(){
+  bookmarkRect.style.display = 'none';
+  renderBookmarkButtons();
+})();
+</script>
+</body>
+</html>
