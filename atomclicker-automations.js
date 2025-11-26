@@ -17,7 +17,7 @@
                         node.classList.contains('power-up') &&
                         node.classList.contains('bonus-atom')
                     ) {
-                        console.log('Clicked div / orb', node);
+                        console.log('Logged Yellow orb at:', node);
                         node.click();
                     }
                 });
@@ -58,7 +58,7 @@
 
     ui.innerHTML = `
         <h4 style="margin:0 0 10px; font-weight:500;">byzan.lol automations</h4>
-        <p><small>made by david s.</small></p>
+        <p><small>made by mrdavidss@discord</small></p>
         <label><input type="checkbox" id="orbToggle" checked> automattic orb clicker</label><br><br>
         <label><input type="checkbox" id="nucleusToggle" checked> automattic atom clicker</label><br><br>
         <label>CPS: <input type="number" id="cpsInput" value="${CPS}" style="width:60px;"></label><br><br>
