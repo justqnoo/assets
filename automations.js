@@ -68,14 +68,15 @@
             outlineColor: "#6a5acd",
             glowColor: "#8a7bff",
             notifColor: "#8a7bff",
-            headerLineEnabled: true
+            headerLineEnabled: true,
+            menuKey: "Tab"
         };
 
         let settings = { ...DEFAULT_SETTINGS };
         try {
             const s = localStorage.getItem("byzanSettings");
             if (s) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
-        } catch (e) { }
+        } catch (e) {}
 
         const save = () => localStorage.setItem("byzanSettings", JSON.stringify(settings));
 
@@ -88,7 +89,8 @@
             outlineColor,
             glowColor,
             notifColor,
-            headerLineEnabled
+            headerLineEnabled,
+            menuKey
         } = settings;
 
         const container = document.querySelector("#app") || document.body;
@@ -122,16 +124,9 @@
 
         const notifBox = document.createElement("div");
         Object.assign(notifBox.style, {
-            position: "fixed",
-            top: "15px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 999999999,
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            pointerEvents: "none",
-            fontFamily: "'Poppins',sans-serif"
+            position: "fixed", top: "15px", left: "50%", transform: "translateX(-50%)",
+            zIndex: 999999999, display: "flex", flexDirection: "column", gap: "10px",
+            pointerEvents: "none", fontFamily: "'Poppins',sans-serif"
         });
         document.body.appendChild(notifBox);
 
@@ -140,12 +135,8 @@
             const n = document.createElement("div");
             n.textContent = text;
             Object.assign(n.style, {
-                background: notifColor,
-                padding: "11px 26px",
-                borderRadius: "12px",
-                color: "white",
-                fontWeight: "600",
-                fontSize: "15px",
+                background: notifColor, padding: "11px 26px", borderRadius: "12px",
+                color: "white", fontWeight: "600", fontSize: "15px",
                 boxShadow: "0 8px 30px rgba(0,0,0,0.5)"
             });
             notifBox.appendChild(n);
@@ -156,31 +147,18 @@
             const w = document.createElement("div");
             w.className = "smooth win-fade";
             Object.assign(w.style, {
-                position: "fixed",
-                background: "#0f0f0f",
-                color: "white",
-                border: `3px solid ${outlineColor}`,
-                borderRadius: "14px",
-                width,
-                minWidth: width,
-                paddingBottom: "10px",
-                fontFamily: "'Poppins',sans-serif",
-                zIndex: 99999999,
-                userSelect: "none",
-                boxShadow: `0 0 22px ${glowColor}90`,
-                display: "none"
+                position: "fixed", background: "#0f0f0f", color: "white",
+                border: `3px solid ${outlineColor}`, borderRadius: "14px",
+                width, minWidth: width, paddingBottom: "10px",
+                fontFamily: "'Poppins',sans-serif", zIndex: 99999999,
+                userSelect: "none", boxShadow: `0 0 22px ${glowColor}90`, display: "none"
             });
 
             const h = document.createElement("div");
             Object.assign(h.style, {
-                padding: "11px",
-                background: "#1a1a1a",
-                textAlign: "center",
-                fontWeight: "700",
-                fontSize: "16px",
-                cursor: drag ? "move" : "default",
-                borderRadius: "11px 11px 0 0",
-                position: "relative"
+                padding: "11px", background: "#1a1a1a", textAlign: "center",
+                fontWeight: "700", fontSize: "16px", cursor: drag ? "move" : "default",
+                borderRadius: "11px 11px 0 0", position: "relative"
             });
             h.textContent = title;
             w.appendChild(h);
@@ -200,8 +178,8 @@
             return { win: w, body: b, head: h };
         };
 
-        const headerWin = createWin("byzan.lol client v0.3", "", false, "280px");
-        const miscWin = createWin("Miscellaneous", `
+        const headerWin  = createWin("byzan.lol client v0.3", "", false, "220px");
+        const miscWin    = createWin("Miscellaneous", `
             <label><input type="checkbox" id="orb"> Auto Orb Clicker</label><br><br>
             <div id="orbDrop" style="background:#222;padding:8px;border-radius:7px;cursor:pointer;text-align:center;font-weight:600;font-size:14px">Orb Options</div>
             <div id="orbContent" style="display:none;padding-top:8px">Delay (ms): <input id="orbDelay" type="number" min="0" max="5000" value="${orbClickDelay}" style="width:78px;background:#111;color:white;border:1px solid #555;border-radius:5px;padding:3px"></div><br>
@@ -212,7 +190,7 @@
             </div>
         `, true, "280px");
 
-        const visualWin = createWin("Visual Settings", `
+        const visualWin  = createWin("Visual Settings", `
             <label style="font-size:14px;display:block;margin:5px 0;">Outline <input type="color" id="ocol" value="${outlineColor}"></label>
             <label style="font-size:14px;display:block;margin:5px 0;">Glow <input type="color" id="gcol" value="${glowColor}"></label>
             <label style="font-size:14px;display:block;margin:5px 0;">Notif <input type="color" id="ncol" value="${notifColor}"></label>
@@ -221,7 +199,26 @@
             </label>
         `, true, "240px");
 
-        const notifWin = createWin("Notifications", `<label style="font-size:15px"><input type="checkbox" id="noti" ${notificationsEnabled ? "checked" : ""}> Enable Notifications</label>`, true, "260px");
+        const keybindWin = createWin("Keybind", `
+            <p style="margin:8px 0 4px;font-size:14px">Menu Toggle Key:</p>
+            <input id="keybindInput" type="text" value="${menuKey === ' ' ? 'Space' : menuKey}" maxlength="12"
+                style="width:100%;background:#111;color:white;border:1px solid #555;border-radius:6px;padding:8px;text-align:center;font-size:16px;font-weight:bold">
+            <p style="margin:10px 0 0;font-size:12px;color:#aaa">Click box → press any key</p>
+        `, true, "200px");
+
+        const notifWin   = createWin("Notifications", `
+            <label style="font-size:15px"><input type="checkbox" id="noti" ${notificationsEnabled ? "checked" : ""}> Enable Notifications</label>
+        `, true, "260px");
+
+        keybindWin.body.querySelector("#keybindInput").onkeydown = function(e) {
+            e.preventDefault();
+            const displayKey = e.key === " " ? "Space" : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+            this.value = displayKey;
+            menuKey = e.key;
+            settings.menuKey = e.key;
+            save();
+            notify(`Menu key → ${displayKey}`);
+        };
 
         miscWin.body.querySelector("#orbDrop").onclick = e => { e.stopPropagation(); const c = miscWin.body.querySelector("#orbContent"); c.style.display = c.style.display === "block" ? "none" : "block"; };
         miscWin.body.querySelector("#atomDrop").onclick = e => { e.stopPropagation(); const c = miscWin.body.querySelector("#atomContent"); c.style.display = c.style.display === "block" ? "none" : "block"; };
@@ -230,19 +227,19 @@
         miscWin.body.querySelector("#atom").checked = atomAutoClick;
         notifWin.body.querySelector("#noti").checked = notificationsEnabled;
 
-        miscWin.body.querySelector("#orb").onchange = function () { orbAutoClick = this.checked; settings.orbAutoClick = orbAutoClick; save(); };
-        miscWin.body.querySelector("#atom").onchange = function () { atomAutoClick = this.checked; settings.atomAutoClick = atomAutoClick; save(); };
-        notifWin.body.querySelector("#noti").onchange = function () { notificationsEnabled = this.checked; settings.notificationsEnabled = notificationsEnabled; save(); };
+        miscWin.body.querySelector("#orb").onchange = () => { orbAutoClick = this.checked; settings.orbAutoClick = orbAutoClick; save(); };
+        miscWin.body.querySelector("#atom").onchange = () => { atomAutoClick = this.checked; settings.atomAutoClick = atomAutoClick; save(); };
+        notifWin.body.querySelector("#noti").onchange = () => { notificationsEnabled = this.checked; settings.notificationsEnabled = notificationsEnabled; save(); };
         miscWin.body.querySelector("#orbDelay").onchange = e => { orbClickDelay = Math.max(0, Math.min(5000, +e.target.value || 0)); settings.orbClickDelay = orbClickDelay; save(); };
         miscWin.body.querySelector("#cpsInput").onchange = e => { CPS = Math.max(1, Math.min(10000, +e.target.value || 1)); settings.CPS = CPS; save(); };
 
         visualWin.body.querySelector("#ocol").oninput = e => { outlineColor = e.target.value; settings.outlineColor = outlineColor; updateColors(); save(); };
         visualWin.body.querySelector("#gcol").oninput = e => { glowColor = e.target.value; settings.glowColor = glowColor; updateColors(); save(); };
         visualWin.body.querySelector("#ncol").oninput = e => { notifColor = e.target.value; settings.notifColor = notifColor; save(); };
-        visualWin.body.querySelector("#hline").onchange = function () { headerLineEnabled = this.checked; settings.headerLineEnabled = headerLineEnabled; save(); applyHeaderLine(headerLineEnabled); };
+        visualWin.body.querySelector("#hline").onchange = () => { headerLineEnabled = this.checked; settings.headerLineEnabled = headerLineEnabled; save(); applyHeaderLine(headerLineEnabled); };
 
         function updateColors() {
-            [headerWin.win, miscWin.win, visualWin.win, notifWin.win].forEach(el => {
+            [headerWin.win, miscWin.win, visualWin.win, keybindWin.win, notifWin.win].forEach(el => {
                 el.style.borderColor = outlineColor;
                 el.style.boxShadow = `0 0 22px ${glowColor}90`;
             });
@@ -272,20 +269,27 @@
 
         const positionWindows = () => {
             const gap = 18;
-            const baseY = 28;
-            headerWin.win.style.left = "20px"; headerWin.win.style.top = baseY + "px";
-            miscWin.win.style.left = (20 + headerWin.win.offsetWidth + gap) + "px"; miscWin.win.style.top = baseY + "px";
-            visualWin.win.style.left = (20 + headerWin.win.offsetWidth + miscWin.win.offsetWidth + gap * 2) + "px"; visualWin.win.style.top = baseY + "px";
-            notifWin.win.style.left = (20 + headerWin.win.offsetWidth + miscWin.win.offsetWidth + visualWin.win.offsetWidth + gap * 3) + "px"; notifWin.win.style.top = baseY + "px";
+            const topY = 28;
+            let x = 20;
+
+            headerWin.win.style.left = x + "px"; x += headerWin.win.offsetWidth + gap;
+            miscWin.win.style.left = x + "px"; x += miscWin.win.offsetWidth + gap;
+            visualWin.win.style.left = x + "px"; x += visualWin.win.offsetWidth + gap;
+            keybindWin.win.style.left = x + "px"; x += keybindWin.win.offsetWidth + gap;
+            notifWin.win.style.left = x + "px";
+
+            [headerWin.win, miscWin.win, visualWin.win, keybindWin.win, notifWin.win].forEach(w => {
+                w.style.top = topY + "px";
+            });
         };
         window.addEventListener("resize", positionWindows);
 
         let visible = true;
         document.addEventListener("keydown", e => {
-            if (e.key === "Tab" && !e.ctrlKey && !e.altKey) {
+            if (e.key === menuKey) {
                 e.preventDefault();
                 visible = !visible;
-                const wins = [headerWin.win, miscWin.win, visualWin.win, notifWin.win];
+                const wins = [headerWin.win, miscWin.win, visualWin.win, keybindWin.win, notifWin.win];
                 wins.forEach(win => {
                     win.classList.remove("fade-in");
                     if (visible) {
@@ -299,7 +303,7 @@
             }
         });
 
-        [headerWin.win, miscWin.win, visualWin.win, notifWin.win].forEach(el => {
+        [headerWin.win, miscWin.win, visualWin.win, keybindWin.win, notifWin.win].forEach(el => {
             el.style.display = "block";
             el.classList.add("fade-in");
         });
