@@ -1,7 +1,6 @@
 (function () {
     console.clear();
     console.log("%cbyzan.lol client injected", "color:#8a7bff;font-weight:bold;font-size:20px;");
-    console.log("%cMade by justqnoo@github", "color:#aaa;font-size:14px;");
 
     const font = document.createElement("link");
     font.rel = "stylesheet";
@@ -191,22 +190,15 @@ if (container) {
             ) {
                 yellowOrbCount++;
 
-                // LOG when orb is detected
-                console.log(
-                    `%c[ORBS] Yellow Orb Detected (#${yellowOrbCount})`,
-                    "color: yellow; font-weight: bold;"
-                );
-
                 setTimeout(() => {
                     n.click?.();
 
-                    // LOG when orb is clicked
                     console.log(
-                        `%c[ORBS] Yellow Orb Clicked (#${yellowOrbCount})`,
-                        "color: yellow; font-weight: bold;"
+                        `%c[byzan client] New Yellow Orb! (#${yellowOrbCount})`,
+                        "color: #8a7bff; font-weight: bold;"
                     );
 
-                    notify(`Yellow Orb #${yellowOrbCount}`);
+                    notify(`Yellow Orbs Collected: ${yellowOrbCount}`);
                 }, orbClickDelay);
             }
         }));
