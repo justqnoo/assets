@@ -312,7 +312,7 @@
         const wins = {
             header: createWin("amber.client v0.3", `
                 <label style="font-size:15px"><input type="checkbox" id="statusToggle" ${statusDisplayEnabled?"checked":""}> Display Labels</label>
-                <p> amber.client by amberlit._ on discord</p>
+                <p>amberlit._ on discord</p>
             `, false, "220px"),
             misc: createWin("Miscellaneous", `
                 <label><input type="checkbox" id="orbAuto"> AutoClicker Yellow Orb</label><br><br>
