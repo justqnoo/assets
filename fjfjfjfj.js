@@ -105,17 +105,6 @@
         let yellowOrbCount = 0, yellowOrbTotal = 0, observer = null, atomInterval = null;
         const container = document.querySelector("#app") || document.body;
 
-        let breakTimerActive = false;
-        setTimeout(() => {
-            breakTimerActive = true;
-            if (atomInterval) {
-                clearInterval(atomInterval);
-            }
-            if (observer) {
-                observer.disconnect();
-            }
-        }, Math.random() * 60000 + 30000);
-
         document.head.insertAdjacentHTML("beforeend", `<style>
             .header-line{background:linear-gradient(90deg,${outlineColor},${glowColor},${outlineColor})}
         </style>`);
@@ -403,9 +392,8 @@
             if (observer) observer.disconnect();
             if (!orbAutoClick || !container) return;
             observer = new MutationObserver(muts => {
-                if (breakTimerActive) return;
                 muts.forEach(m => m.addedNodes.forEach(n => {
-                    if (n.nodeType === 1 && n.classList?.contains("power-up") && n.classList?.contains("bonus-atom")) {
+                    if (n.nodeType === 1 && n.classList && (n.classList.contains("power-up") || n.classList.contains("bonus-atom"))) {
                         yellowOrbTotal++;
                         const shouldCollect = Math.random() * 100 < orbCollectChance;
                         if (shouldCollect) {
@@ -428,7 +416,6 @@
             if (!atomAutoClick) return;
             const delayMs = 1000 / CPS;
             atomInterval = setInterval(() => {
-                if (breakTimerActive) return;
                 const nucleus = document.querySelector(".nucleus");
                 if (nucleus) nucleus.click();
             }, delayMs);
