@@ -25,7 +25,6 @@
         .amber-status-off{color:#ff7b7b}
     `;
     document.head.appendChild(style);
-
     const loader = document.createElement("div");
     loader.className = "amber-loading";
     loader.innerHTML = `
@@ -35,7 +34,6 @@
         <p class="amber-txt">Initializing amber.client...</p>
     `;
     document.body.appendChild(loader);
-
     const bar = document.getElementById("amberProgress");
     let progress = 0;
     const pauses = [{pct: 90, ms: 550}];
@@ -64,16 +62,13 @@
         requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
-
     function startClient() {
         console.clear();
         console.log("%camber.client injected - v0.3", "color:#ff7b7b;font-weight:bold;font-size:20px");
-
         const font = document.createElement("link");
         font.rel = "stylesheet";
         font.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap";
         document.head.appendChild(font);
-
         const DEFAULT_SETTINGS = {
             orbAutoClick: true,
             atomAutoClick: true,
@@ -97,18 +92,13 @@
             const saved = localStorage.getItem("amberSettings");
             if (saved) settings = {...DEFAULT_SETTINGS, ...JSON.parse(saved)};
         } catch (e) {}
-
         const save = () => localStorage.setItem("amberSettings", JSON.stringify(settings));
-
         let {orbAutoClick, atomAutoClick, CPS, orbClickDelay, orbCollectChance, notificationsEnabled, outlineColor, glowColor, notifColor, headerLineEnabled, menuKey, statusDisplayEnabled, statusBgColor, statusBorderColor, statusTextColor, statusPosition} = settings;
-
-        let yellowOrbCount = 0, yellowOrbTotal = 0, observer = null, atomInterval = null;
+        let yellowOrbCount = 0, yellowOrbTotal = 0, observer = null, atomInterval = null, pointer = null;
         const container = document.querySelector("#app") || document.body;
-
         document.head.insertAdjacentHTML("beforeend", `<style>
             .header-line{background:linear-gradient(90deg,${outlineColor},${glowColor},${outlineColor})}
         </style>`);
-
         const statusDisplay = document.createElement("div");
         statusDisplay.className = "amber-status-display";
         statusDisplay.innerHTML = `
@@ -116,13 +106,11 @@
             <div id="statusContent"></div>
         `;
         document.body.appendChild(statusDisplay);
-
         const updateStatusPosition = (position) => {
             statusDisplay.style.top = "";
             statusDisplay.style.bottom = "";
             statusDisplay.style.left = "";
             statusDisplay.style.right = "";
-            
             switch(position) {
                 case "top-left":
                     statusDisplay.style.top = "20px";
@@ -145,7 +133,6 @@
                     statusDisplay.style.transform = "translateX(0)";
                     break;
             }
-            
             if (statusDisplay.classList.contains("hidden")) {
                 if (position.includes("right")) {
                     statusDisplay.style.transform = "translateX(300px)";
@@ -154,7 +141,6 @@
                 }
             }
         };
-
         const updateStatusColors = () => {
             statusDisplay.style.background = statusBgColor;
             statusDisplay.style.borderColor = statusBorderColor;
@@ -164,53 +150,40 @@
                 el.style.color = statusTextColor;
             });
         };
-
         const updateStatusDisplay = () => {
             const statusContent = document.getElementById("statusContent");
             if (!statusContent) return;
-
             let items = [];
-
             if (orbAutoClick) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">Orb AutoClick</span></div>`, length: 14});
             }
-
             if (atomAutoClick) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">AutoClicker</span></div>`, length: 11});
             }
-
             if (orbAutoClick) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">Orb Collect</span><span class="amber-status-value">${orbCollectChance}%</span></div>`, length: 11});
             }
-
             if (orbAutoClick && orbClickDelay > 0) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">Orb Delay</span><span class="amber-status-value">${orbClickDelay}ms</span></div>`, length: 9});
             }
-
             if (atomAutoClick) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">CPS</span><span class="amber-status-value">${CPS}</span></div>`, length: 3});
             }
-
             if (notificationsEnabled) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">Notifications</span></div>`, length: 13});
             }
-
             if (headerLineEnabled) {
                 items.push({html: `<div class="amber-status-item"><span class="amber-status-label">Header Line</span></div>`, length: 11});
             }
-
             items.sort((a, b) => b.length - a.length);
             statusContent.innerHTML = items.map(item => item.html).join('');
-
             updateStatusColors();
-
             if (statusDisplayEnabled) {
                 statusDisplay.classList.remove("hidden");
             } else {
                 statusDisplay.classList.add("hidden");
             }
         };
-
         const notifBox = document.createElement("div");
         Object.assign(notifBox.style, {
             position: "fixed",
@@ -225,7 +198,6 @@
             fontFamily: "'Poppins',sans-serif"
         });
         document.body.appendChild(notifBox);
-
         const notify = text => {
             if (!notificationsEnabled) return;
             const n = document.createElement("div");
@@ -253,7 +225,34 @@
                 setTimeout(() => n.remove(), 300)
             }, 2700);
         };
-
+        const createClickEffect = (x, y) => {
+            const effect = document.createElement("div");
+            effect.className = "click-effect";
+            effect.style.left = x + "px";
+            effect.style.top = y + "px";
+            effect.style.border = `3px solid ${glowColor}`;
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 400);
+        };
+        const pointerKeyframes = document.createElement("style");
+        pointerKeyframes.textContent = `@keyframes pointerPulse{0%{box-shadow:0 0 0 0 var(--pulse-color)}70%{box-shadow:0 0 0 15px transparent}100%{box-shadow:0 0 0 0 transparent}}`;
+        document.head.appendChild(pointerKeyframes);
+        pointer = document.createElement("div");
+        pointer.style.cssText = `position:fixed;transform:translate(-50%,-50%);width:30px;height:30px;border:3px solid ${glowColor};border-radius:50%;pointer-events:none;z-index:9999;opacity:0.8;--pulse-color:${glowColor}b3;animation:pointerPulse 1.5s infinite;display:none;`;
+        document.body.appendChild(pointer);
+        const clickStyle = document.createElement("style");
+        clickStyle.textContent = `.click-effect{position:absolute;border-radius:50%;pointer-events:none;animation:clickAnim .4s ease-out forwards;z-index:9998;transform:translate(-50%,-50%);opacity:1}@keyframes clickAnim{0%{width:0;height:0;border-width:3px}100%{width:50px;height:50px;opacity:0;border-width:0}}`;
+        document.head.appendChild(clickStyle);
+        const updatePointerPosition = () => {
+            const nucleus = document.querySelector(".nucleus");
+            if (nucleus && atomAutoClick) {
+                const rect = nucleus.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                pointer.style.left = x + "px";
+                pointer.style.top = y + "px";
+            }
+        };
         const createWin = (title, html = "", drag = true, width = "260px") => {
             const win = document.createElement("div");
             win.className = "smooth win-fade";
@@ -290,7 +289,6 @@
             body.style.padding = "10px";
             win.appendChild(body);
             document.body.appendChild(win);
-
             if (drag) {
                 let dragging = false, ox, oy;
                 head.onmousedown = e => {
@@ -308,7 +306,6 @@
             }
             return {win, body, head};
         };
-
         const wins = {
             header: createWin("amber.client v0.3", `
                 <label style="font-size:15px"><input type="checkbox" id="statusToggle" ${statusDisplayEnabled?"checked":""}> Display Labels</label>
@@ -353,7 +350,6 @@
                 <label style="font-size:15px"><input type="checkbox" id="notiEnabled" ${notificationsEnabled?"checked":""}> Enable Notifications</label>
             `, true, "260px")
         };
-
         const keybindInput = wins.keybind.body.querySelector("#keybindInput");
         keybindInput.onkeydown = e => {
             e.stopPropagation();
@@ -367,15 +363,17 @@
             notify(`Menu key to ${display}`);
         };
         keybindInput.onclick = () => keybindInput.focus();
-
         const updateColors = () => {
             Object.values(wins).forEach(w => {
                 w.win.style.borderColor = outlineColor;
                 w.win.style.boxShadow = `0 0 22px ${glowColor}90`;
             });
             document.querySelectorAll(".header-line").forEach(l => l.style.background = `linear-gradient(90deg,${outlineColor},${glowColor},${outlineColor})`);
+            if (pointer) {
+                pointer.style.borderColor = glowColor;
+                pointer.style.setProperty('--pulse-color', glowColor + 'b3');
+            }
         };
-
         const applyHeaderLine = enabled => {
             document.querySelectorAll(".win-fade > div:first-child").forEach(h => {
                 h.querySelectorAll(".header-line").forEach(el => el.remove());
@@ -387,18 +385,25 @@
                 }
             });
         };
-
         const setupOrbObserver = () => {
             if (observer) observer.disconnect();
             if (!orbAutoClick || !container) return;
             observer = new MutationObserver(muts => {
                 muts.forEach(m => m.addedNodes.forEach(n => {
-                    if (n.nodeType === 1 && n.classList && (n.classList.contains("power-up") || n.classList.contains("bonus-atom"))) {
+                    if (n.nodeType === 1 && n.classList?.contains("power-up") && n.classList?.contains("bonus-atom")) {
                         yellowOrbTotal++;
                         const shouldCollect = Math.random() * 100 < orbCollectChance;
                         if (shouldCollect) {
                             yellowOrbCount++;
-                            setTimeout(() => n.click?.(), orbClickDelay);
+                            setTimeout(() => {
+                                if (n.isConnected) {
+                                    const rect = n.getBoundingClientRect();
+                                    const x = rect.left + rect.width / 2;
+                                    const y = rect.top + rect.height / 2;
+                                    createClickEffect(x, y);
+                                    n.click();
+                                }
+                            }, orbClickDelay);
                             const percentage = ((yellowOrbCount / yellowOrbTotal) * 100).toFixed(1);
                             notify(`Yellow Orbs: ${yellowOrbCount}/${yellowOrbTotal} (${percentage}%)`);
                             console.log(`[amber.client]: Yellow Orb Collected: ${yellowOrbCount}/${yellowOrbTotal} (${percentage}%)`);
@@ -410,22 +415,30 @@
             });
             observer.observe(container, {childList: true, subtree: true});
         };
-
         const setupAtomClicker = () => {
             if (atomInterval) clearInterval(atomInterval);
+            atomInterval = null;
+            if (pointer) pointer.style.display = "none";
             if (!atomAutoClick) return;
+            updatePointerPosition();
+            if (pointer) pointer.style.display = "block";
             const delayMs = 1000 / CPS;
             atomInterval = setInterval(() => {
                 const nucleus = document.querySelector(".nucleus");
-                if (nucleus) nucleus.click();
+                if (nucleus) {
+                    const rect = nucleus.getBoundingClientRect();
+                    const x = rect.left + rect.width / 2;
+                    const y = rect.top + rect.height / 2;
+                    updatePointerPosition();
+                    createClickEffect(x, y);
+                    nucleus.click();
+                }
             }, delayMs);
         };
-
         wins.misc.body.querySelector("#orbAuto").checked = orbAutoClick;
         wins.misc.body.querySelector("#atomAuto").checked = atomAutoClick;
         wins.notif.body.querySelector("#notiEnabled").checked = notificationsEnabled;
         wins.header.body.querySelector("#statusToggle").checked = statusDisplayEnabled;
-
         wins.header.body.querySelector("#statusToggle").onchange = e => {
             statusDisplayEnabled = e.target.checked;
             settings.statusDisplayEnabled = statusDisplayEnabled;
@@ -495,7 +508,6 @@
             applyHeaderLine(headerLineEnabled);
             updateStatusDisplay();
         };
-
         wins.visual.body.querySelector("#statusBg").oninput = e => {
             const hex = e.target.value;
             statusBgColor = `${hex}b3`;
@@ -524,7 +536,6 @@
             save();
             updateStatusPosition(statusPosition);
         };
-
         wins.misc.body.querySelector("#orbDrop").onclick = () => {
             const c = wins.misc.body.querySelector("#orbContent");
             c.style.display = c.style.display === "block" ? "none" : "block";
@@ -533,7 +544,6 @@
             const c = wins.misc.body.querySelector("#atomContent");
             c.style.display = c.style.display === "block" ? "none" : "block";
         };
-
         const positionWindows = () => {
             const gap = 18, top = 28;
             let left = 20;
@@ -543,7 +553,6 @@
                 left += w.win.offsetWidth + gap;
             });
         };
-
         let menuVisible = true;
         document.addEventListener("keydown", e => {
             if (e.key === menuKey && document.activeElement !== keybindInput) {
@@ -566,7 +575,6 @@
                 }
             }
         });
-
         Object.values(wins).forEach(w => {
             w.win.style.display = "block";
             w.win.classList.add("fade-in");
@@ -577,9 +585,10 @@
         setupAtomClicker();
         updateStatusPosition(statusPosition);
         updateStatusDisplay();
-
         setTimeout(positionWindows, 100);
-
-        window.addEventListener("resize", positionWindows);
+        window.addEventListener("resize", () => {
+            positionWindows();
+            updatePointerPosition();
+        });
     }
 })();
