@@ -18,9 +18,10 @@
         .skylite-status-display{position:fixed;backdrop-filter:blur(10px);border-radius:12px;padding:16px 20px;font-family:'Poppins',sans-serif;color:white;z-index:99999998;box-shadow:0 0 20px rgba(123,187,255,0.3);min-width:200px;transition:opacity .3s,transform .3s}
         .skylite-status-display.hidden{opacity:0;transform:translateX(300px);pointer-events:none}
         .skylite-status-title{font-size:20px;font-weight:700;text-align:right;margin-bottom:12px;text-shadow:0 0 10px rgba(123,187,255,0.5)}
-        .skylite-status-item{font-size:13px;margin:6px 0;display:flex;justify-content:space-between;align-items:center;flex-direction:row-reverse}
+        .skylite-status-item{font-size:13px;margin:0;display:flex;justify-content:space-between;align-items:center;flex-direction:row-reverse}
         .skylite-status-label{color:#aaa;text-align:right}
         .skylite-status-value{font-weight:600;margin-right:12px}
+        .skylite-status-value{font-weight:600;margin-right:0;margin-left:4px}
         .skylite-status-on{color:#7bddff}
         .skylite-status-off{color:#7b9fff}
     `;
@@ -38,7 +39,7 @@
 
     const bar = document.getElementById("skyliteProgress");
     let progress = 0;
-    const pauses = [{pct: 13, ms: 563}];
+    const pauses = [{pct: 90, ms: 550}];
     const animate = () => {
         if (pauses.length && progress >= pauses[0].pct) {
             setTimeout(() => {
@@ -90,7 +91,14 @@
             statusBgColor: "rgba(15,20,30,0.7)",
             statusBorderColor: "rgba(90,154,205,0.6)",
             statusTextColor: "#7bbbff",
-            statusPosition: "top-right"
+            statusPosition: "top-right",
+            statusOpacity: 70,
+            statusTitle: "skylite.client.v0.3",
+            orbAutoClickKey: "",
+            centerAutoClickKey: "",
+            notificationsKey: "",
+            statusDisplayKey: "",
+            headerLineKey: ""
         };
         let settings = {...DEFAULT_SETTINGS};
         try {
@@ -100,7 +108,7 @@
 
         const save = () => localStorage.setItem("skyliteSettings", JSON.stringify(settings));
 
-        let {orbAutoClick, centerAutoClick, CPS, orbClickDelay, orbCollectChance, notificationsEnabled, outlineColor, glowColor, notifColor, headerLineEnabled, menuKey, statusDisplayEnabled, statusBgColor, statusBorderColor, statusTextColor, statusPosition} = settings;
+        let {orbAutoClick, centerAutoClick, CPS, orbClickDelay, orbCollectChance, notificationsEnabled, outlineColor, glowColor, notifColor, headerLineEnabled, menuKey, statusDisplayEnabled, statusBgColor, statusBorderColor, statusTextColor, statusPosition, statusOpacity, statusTitle, orbAutoClickKey, centerAutoClickKey, notificationsKey, statusDisplayKey, headerLineKey} = settings;
 
         let yellowOrbCount = 0, yellowOrbTotal = 0, observer = null, centerClickInterval = null;
         const container = document.querySelector("#app") || document.body;
@@ -112,7 +120,7 @@
         const statusDisplay = document.createElement("div");
         statusDisplay.className = "skylite-status-display";
         statusDisplay.innerHTML = `
-            <div class="skylite-status-title">skylite.client.v0.3</div>
+            <div class="skylite-status-title">${statusTitle}</div>
             <div id="statusContent"></div>
         `;
         document.body.appendChild(statusDisplay);
@@ -156,10 +164,49 @@
         };
 
         const updateStatusColors = () => {
-            statusDisplay.style.background = statusBgColor;
+            const opacityDecimal = statusOpacity / 100;
+            const bgHex = statusBgColor.match(/#[0-9a-f]{6}/i)?.[0] || '#0f141e';
+            const r = parseInt(bgHex.slice(1, 3), 16);
+            const g = parseInt(bgHex.slice(3, 5), 16);
+            const b = parseInt(bgHex.slice(5, 7), 16);
+            statusDisplay.style.background = `rgba(${r}, ${g}, ${b}, ${opacityDecimal})`;
             statusDisplay.style.borderColor = statusBorderColor;
+            
+            if (statusOpacity < 20) {
+                statusDisplay.style.boxShadow = 'none';
+            } else {
+                const shadowOpacity = opacityDecimal * 0.3;
+                statusDisplay.style.boxShadow = `0 0 20px rgba(123,187,255,${shadowOpacity})`;
+            }
+            
+            if (statusOpacity < 20) {
+                statusDisplay.style.backdropFilter = 'none';
+            } else {
+                statusDisplay.style.backdropFilter = `blur(${opacityDecimal * 10}px)`;
+            }
+            
             const title = statusDisplay.querySelector(".skylite-status-title");
-            if (title) title.style.color = statusTextColor;
+            if (title) {
+                title.style.color = statusTextColor;
+                title.textContent = statusTitle;
+            }
+            
+            document.querySelectorAll(".skylite-status-label").forEach((el, idx, arr) => {
+                el.style.background = 'rgba(0,0,0,0.4)';
+                el.style.padding = '6px 10px';
+                el.style.display = 'block';
+                el.style.marginBottom = '0';
+                el.style.borderRadius = '0';
+                
+                if (idx === 0 && idx === arr.length - 1) {
+                    el.style.borderRadius = '6px';
+                } else if (idx === 0) {
+                    el.style.borderRadius = '6px 6px 0 0';
+                } else if (idx === arr.length - 1) {
+                    el.style.borderRadius = '0 0 6px 6px';
+                }
+            });
+            
             document.querySelectorAll(".skylite-status-value").forEach(el => {
                 el.style.color = statusTextColor;
             });
@@ -176,19 +223,19 @@
             }
 
             if (centerAutoClick) {
-                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Atom AutoClick</span></div>`, length: 16});
+                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Atom AutoClicker</span></div>`, length: 16});
             }
 
             if (orbAutoClick) {
-                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Orb Collect</span><span class="skylite-status-value">${orbCollectChance}%</span></div>`, length: 11});
+                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Orb Collect: <span class="skylite-status-value">${orbCollectChance}%</span></span></div>`, length: 11});
             }
 
             if (orbAutoClick && orbClickDelay > 0) {
-                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Orb Delay</span><span class="skylite-status-value">${orbClickDelay}ms</span></div>`, length: 9});
+                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">Orb Delay: <span class="skylite-status-value">${orbClickDelay}ms</span></span></div>`, length: 9});
             }
 
             if (centerAutoClick) {
-                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">CPS</span><span class="skylite-status-value">${CPS}</span></div>`, length: 3});
+                items.push({html: `<div class="skylite-status-item"><span class="skylite-status-label">CPS: <span class="skylite-status-value">${CPS}</span></span></div>`, length: 3});
             }
 
             if (notificationsEnabled) {
@@ -312,29 +359,37 @@
         const wins = {
             header: createWin("skylite.client v0.3", `
                 <label style="font-size:15px"><input type="checkbox" id="statusToggle" ${statusDisplayEnabled?"checked":""}> Display Labels</label>
-                <p>skylit._@discord</p>
+                <input type="text" id="statusDisplayKeyInput" placeholder="Key" value="${statusDisplayKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px">
+                <p>amberlit._ on discord</p>
             `, false, "220px"),
             misc: createWin("Miscellaneous", `
-                <label><input type="checkbox" id="orbAuto"> AutoClicker Yellow Orb</label><br><br>
+                <label><input type="checkbox" id="orbAuto"> AutoClicker Yellow Orb</label>
+                <input type="text" id="orbAutoKeyInput" placeholder="Key" value="${orbAutoClickKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px"><br><br>
                 <div id="orbDrop" style="background:#1a2230;padding:8px;border-radius:7px;cursor:pointer;text-align:center;font-weight:600;font-size:14px">Orb Options</div>
                 <div id="orbContent" style="display:none;padding-top:8px">
                     Delay (ms): <input id="orbDelay" type="number" min="0" max="5000" value="${orbClickDelay}" style="width:78px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:5px;padding:3px"><br><br>
                     Collect %: <input id="orbChance" type="number" min="0" max="100" value="${orbCollectChance}" style="width:78px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:5px;padding:3px">
                 </div><br>
-                <label><input type="checkbox" id="centerAuto"> Atom AutoClicker</label><br><br>
-                <div id="centerDrop" style="background:#1a2230;padding:8px;border-radius:7px;cursor:pointer;text-align:center;font-weight:600;font-size:14px">Atom Clicker Options</div>
+                <label><input type="checkbox" id="centerAuto"> Atom AutoClicker</label>
+                <input type="text" id="centerAutoKeyInput" placeholder="Key" value="${centerAutoClickKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px"><br><br>
+                <div id="centerDrop" style="background:#1a2230;padding:8px;border-radius:7px;cursor:pointer;text-align:center;font-weight:600;font-size:14px">Atom Click Options</div>
                 <div id="centerContent" style="display:none;padding-top:8px">CPS: <input id="cpsInput" type="number" min="1" max="10000" value="${CPS}" style="width:88px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:5px;padding:3px"></div>
-            `, true, "280px"),
+            `, true, "300px"),
             visual: createWin("Visual Settings", `
                 <label style="font-size:14px;display:block;margin:5px 0;">Outline <input type="color" id="ocol" value="${outlineColor}"></label>
                 <label style="font-size:14px;display:block;margin:5px 0;">Glow <input type="color" id="gcol" value="${glowColor}"></label>
                 <label style="font-size:14px;display:block;margin:5px 0;">Notif <input type="color" id="ncol" value="${notifColor}"></label>
                 <label style="font-size:14px;display:block;margin:10px 0 5px 0;"><input type="checkbox" id="hline" ${headerLineEnabled?"checked":""}> Header Line</label>
+                <input type="text" id="headerLineKeyInput" placeholder="Key" value="${headerLineKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px">
                 <hr style="border:none;border-top:1px solid #5a9acd;margin:15px 0">
                 <p style="font-size:13px;font-weight:600;margin:8px 0 8px 0;color:#aaa">Status Display</p>
+                <label style="font-size:14px;display:block;margin:5px 0;">Title</label>
+                <input type="text" id="statusTitleInput" value="${statusTitle}" maxlength="30" style="width:100%;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:5px;padding:6px;margin-bottom:8px">
                 <label style="font-size:14px;display:block;margin:5px 0;">Background <input type="color" id="statusBg" value="${statusBgColor.match(/#[0-9a-f]{6}/i)?.[0] || '#0f141e'}"></label>
                 <label style="font-size:14px;display:block;margin:5px 0;">Border <input type="color" id="statusBorder" value="${statusBorderColor.match(/#[0-9a-f]{6}/i)?.[0] || '#5a9acd'}"></label>
                 <label style="font-size:14px;display:block;margin:5px 0;">Text <input type="color" id="statusText" value="${statusTextColor}"></label>
+                <label style="font-size:14px;display:block;margin:8px 0 5px 0;">Opacity: <span id="opacityValue">${statusOpacity}%</span></label>
+                <input type="range" id="statusOpacity" min="0" max="100" value="${statusOpacity}" style="width:100%;accent-color:#5a9acd">
                 <p style="font-size:12px;margin:8px 0 4px 0;color:#aaa">Position:</p>
                 <select id="statusPos" style="width:100%;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:5px;padding:6px">
                     <option value="top-right" ${statusPosition==="top-right"?"selected":""}>Top Right</option>
@@ -351,7 +406,8 @@
             `, true, "200px"),
             notif: createWin("Notifications", `
                 <label style="font-size:15px"><input type="checkbox" id="notiEnabled" ${notificationsEnabled?"checked":""}> Enable Notifications</label>
-            `, true, "260px")
+                <input type="text" id="notificationsKeyInput" placeholder="Key" value="${notificationsKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px">
+            `, true, "280px")
         };
 
         const keybindInput = wins.keybind.body.querySelector("#keybindInput");
@@ -367,6 +423,36 @@
             notify(`Menu key to ${display}`);
         };
         keybindInput.onclick = () => keybindInput.focus();
+
+        const setupKeybindInput = (inputId, settingKey, onToggle, displayName) => {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.onkeydown = e => {
+                e.stopPropagation();
+                e.preventDefault();
+                const key = e.key === " " ? " " : e.key;
+                const display = key === " " ? "Space" : key.length === 1 ? key.toUpperCase() : key;
+                input.value = display;
+                
+                if (settingKey === "orbAutoClickKey") orbAutoClickKey = key;
+                else if (settingKey === "centerAutoClickKey") centerAutoClickKey = key;
+                else if (settingKey === "notificationsKey") notificationsKey = key;
+                else if (settingKey === "statusDisplayKey") statusDisplayKey = key;
+                else if (settingKey === "headerLineKey") headerLineKey = key;
+                
+                settings[settingKey] = key;
+                save();
+                notify(`${displayName} key set to ${display}`);
+            };
+            input.onclick = () => input.focus();
+        };
+
+        setupKeybindInput("orbAutoKeyInput", "orbAutoClickKey", null, "Orb AutoClick");
+        setupKeybindInput("centerAutoKeyInput", "centerAutoClickKey", null, "Atom AutoClicker");
+        setupKeybindInput("notificationsKeyInput", "notificationsKey", null, "Notifications");
+        setupKeybindInput("statusDisplayKeyInput", "statusDisplayKey", null, "Display Labels");
+        setupKeybindInput("headerLineKeyInput", "headerLineKey", null, "Header Line");
 
         const updateColors = () => {
             Object.values(wins).forEach(w => {
@@ -413,11 +499,38 @@
 
         const setupCenterClicker = () => {
             if (centerClickInterval) clearInterval(centerClickInterval);
-            if (!centerAutoClick) return;
+            if (!centerAutoClick || clickerPausedForMenu) return;
             const delayMs = 1000 / CPS;
             centerClickInterval = setInterval(() => {
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
+                if (menuVisible) return;
+                
+                const electronShell = document.querySelector(".electron-shell.svelte-9i0pj0");
+                if (!electronShell) return;
+                
+                const rect = electronShell.getBoundingClientRect();
+                const isVisible = rect.width > 0 && rect.height > 0 && 
+                                rect.top >= 0 && rect.bottom <= window.innerHeight &&
+                                rect.left >= 0 && rect.right <= window.innerWidth;
+                
+                if (!isVisible) return;
+                
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                const centerX = viewportWidth / 2;
+                const yOffset = viewportHeight < 600 ? viewportHeight * 0.1 : 100;
+                const centerY = (viewportHeight / 2) - yOffset;
+                
+                const element = document.elementFromPoint(centerX, centerY);
+                
+                if (element && (
+                    element.closest('.win-fade') || 
+                    element.closest('.skylite-status-display') ||
+                    element.classList.contains('win-fade') ||
+                    element.classList.contains('skylite-status-display')
+                )) {
+                    return;
+                }
                 
                 const clickEvent = new MouseEvent('click', {
                     view: window,
@@ -427,7 +540,6 @@
                     clientY: centerY
                 });
                 
-                const element = document.elementFromPoint(centerX, centerY);
                 if (element) {
                     element.dispatchEvent(clickEvent);
                 }
@@ -456,7 +568,14 @@
             centerAutoClick = e.target.checked;
             settings.centerAutoClick = centerAutoClick;
             save();
-            setupCenterClicker();
+            if (centerAutoClick) {
+                setupCenterClicker();
+            } else {
+                if (centerClickInterval) {
+                    clearInterval(centerClickInterval);
+                    centerClickInterval = null;
+                }
+            }
             updateStatusDisplay();
         };
         wins.notif.body.querySelector("#notiEnabled").onchange = e => {
@@ -538,6 +657,21 @@
             updateStatusPosition(statusPosition);
         };
 
+        wins.visual.body.querySelector("#statusOpacity").oninput = e => {
+            statusOpacity = parseInt(e.target.value);
+            settings.statusOpacity = statusOpacity;
+            wins.visual.body.querySelector("#opacityValue").textContent = statusOpacity + "%";
+            save();
+            updateStatusColors();
+        };
+
+        wins.visual.body.querySelector("#statusTitleInput").oninput = e => {
+            statusTitle = e.target.value;
+            settings.statusTitle = statusTitle;
+            save();
+            updateStatusColors();
+        };
+
         wins.misc.body.querySelector("#orbDrop").onclick = () => {
             const c = wins.misc.body.querySelector("#orbContent");
             c.style.display = c.style.display === "block" ? "none" : "block";
@@ -557,11 +691,29 @@
             });
         };
 
-        let menuVisible = true;
+        let menuVisible = false;
+        let clickerPausedForMenu = false;
+        
         document.addEventListener("keydown", e => {
-            if (e.key === menuKey && document.activeElement !== keybindInput) {
+            if (document.activeElement.tagName === 'INPUT') return;
+            
+            if (e.key === menuKey) {
                 e.preventDefault();
                 menuVisible = !menuVisible;
+                
+                if (menuVisible) {
+                    clickerPausedForMenu = true;
+                    if (centerClickInterval) {
+                        clearInterval(centerClickInterval);
+                        centerClickInterval = null;
+                    }
+                } else {
+                    clickerPausedForMenu = false;
+                    if (centerAutoClick) {
+                        setupCenterClicker();
+                    }
+                }
+                
                 Object.values(wins).forEach(w => {
                     if (menuVisible) {
                         w.win.style.display = "block";
@@ -578,11 +730,70 @@
                     setTimeout(positionWindows, 50);
                 }
             }
+            
+            if (orbAutoClickKey && e.key === orbAutoClickKey) {
+                e.preventDefault();
+                orbAutoClick = !orbAutoClick;
+                settings.orbAutoClick = orbAutoClick;
+                wins.misc.body.querySelector("#orbAuto").checked = orbAutoClick;
+                save();
+                setupOrbObserver();
+                updateStatusDisplay();
+                notify(`Orb AutoClick ${orbAutoClick ? 'ON' : 'OFF'}`);
+            }
+            
+            if (centerAutoClickKey && e.key === centerAutoClickKey) {
+                e.preventDefault();
+                centerAutoClick = !centerAutoClick;
+                settings.centerAutoClick = centerAutoClick;
+                wins.misc.body.querySelector("#centerAuto").checked = centerAutoClick;
+                save();
+                if (centerAutoClick) {
+                    setupCenterClicker();
+                } else {
+                    if (centerClickInterval) {
+                        clearInterval(centerClickInterval);
+                        centerClickInterval = null;
+                    }
+                }
+                updateStatusDisplay();
+                notify(`Atom AutoClicker ${centerAutoClick ? 'ON' : 'OFF'}`);
+            }
+            
+            if (notificationsKey && e.key === notificationsKey) {
+                e.preventDefault();
+                notificationsEnabled = !notificationsEnabled;
+                settings.notificationsEnabled = notificationsEnabled;
+                wins.notif.body.querySelector("#notiEnabled").checked = notificationsEnabled;
+                save();
+                updateStatusDisplay();
+                if (notificationsEnabled) notify('Notifications ON');
+            }
+            
+            if (statusDisplayKey && e.key === statusDisplayKey) {
+                e.preventDefault();
+                statusDisplayEnabled = !statusDisplayEnabled;
+                settings.statusDisplayEnabled = statusDisplayEnabled;
+                wins.header.body.querySelector("#statusToggle").checked = statusDisplayEnabled;
+                save();
+                updateStatusDisplay();
+                notify(`Display Labels ${statusDisplayEnabled ? 'ON' : 'OFF'}`);
+            }
+            
+            if (headerLineKey && e.key === headerLineKey) {
+                e.preventDefault();
+                headerLineEnabled = !headerLineEnabled;
+                settings.headerLineEnabled = headerLineEnabled;
+                wins.visual.body.querySelector("#hline").checked = headerLineEnabled;
+                save();
+                applyHeaderLine(headerLineEnabled);
+                updateStatusDisplay();
+                notify(`Header Line ${headerLineEnabled ? 'ON' : 'OFF'}`);
+            }
         });
 
         Object.values(wins).forEach(w => {
-            w.win.style.display = "block";
-            w.win.classList.add("fade-in");
+            w.win.style.display = "none";
         });
         updateColors();
         applyHeaderLine(headerLineEnabled);
