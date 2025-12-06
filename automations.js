@@ -38,7 +38,7 @@
 
     const bar = document.getElementById("skyliteProgress");
     let progress = 0;
-    const pauses = [{pct: 90, ms: 550}];
+    const pauses = [{pct: 13, ms: 563}];
     const animate = () => {
         if (pauses.length && progress >= pauses[0].pct) {
             setTimeout(() => {
