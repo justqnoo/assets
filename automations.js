@@ -68,7 +68,7 @@
 
     function startClient() {
         console.clear();
-        console.log("%cskylite.client injected - v0.3", "color:#7bbbff;font-weight:bold;font-size:20px");
+        console.log("%cskylite.client injected - v1", "color:#7bbbff;font-weight:bold;font-size:20px");
 
         const font = document.createElement("link");
         font.rel = "stylesheet";
@@ -93,7 +93,7 @@
             statusTextColor: "#7bbbff",
             statusPosition: "top-right",
             statusOpacity: 70,
-            statusTitle: "skylite.client.v0.3",
+            statusTitle: "skylite.client.v1",
             orbAutoClickKey: "",
             centerAutoClickKey: "",
             notificationsKey: "",
@@ -357,7 +357,7 @@
         };
 
         const wins = {
-            header: createWin("skylite.client v0.3", `
+            header: createWin("skylite.client v1", `
                 <label style="font-size:15px"><input type="checkbox" id="statusToggle" ${statusDisplayEnabled?"checked":""}> Display Labels</label>
                 <input type="text" id="statusDisplayKeyInput" placeholder="Key" value="${statusDisplayKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px">
                 <p>amberlit._ on discord</p>
