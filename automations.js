@@ -68,7 +68,7 @@
 
     function startClient() {
         console.clear();
-        console.log("%cskylite.client injected - v1", "color:#7bbbff;font-weight:bold;font-size:20px");
+        console.log("%cskylite.client injected - v0.3", "color:#7bbbff;font-weight:bold;font-size:20px");
 
         const font = document.createElement("link");
         font.rel = "stylesheet";
@@ -93,7 +93,7 @@
             statusTextColor: "#7bbbff",
             statusPosition: "top-right",
             statusOpacity: 70,
-            statusTitle: "skylite.client.v1",
+            statusTitle: "skylite.client.v0.3",
             orbAutoClickKey: "",
             centerAutoClickKey: "",
             notificationsKey: "",
@@ -357,7 +357,7 @@
         };
 
         const wins = {
-            header: createWin("skylite.client v1", `
+            header: createWin("skylite.client v0.3", `
                 <label style="font-size:15px"><input type="checkbox" id="statusToggle" ${statusDisplayEnabled?"checked":""}> Display Labels</label>
                 <input type="text" id="statusDisplayKeyInput" placeholder="Key" value="${statusDisplayKey}" maxlength="12" style="width:60px;background:#0a0e14;color:white;border:1px solid #5a9acd;border-radius:4px;padding:4px;margin-left:8px;font-size:12px">
                 <p>amberlit._ on discord</p>
@@ -498,28 +498,22 @@
         };
 
         const setupCenterClicker = () => {
-            if (centerClickInterval) clearInterval(centerClickInterval);
-            if (!centerAutoClick || clickerPausedForMenu) return;
+            if (centerClickInterval) {
+                clearInterval(centerClickInterval);
+                centerClickInterval = null;
+            }
+            
+            if (!centerAutoClick) return;
+            
             const delayMs = 1000 / CPS;
             centerClickInterval = setInterval(() => {
                 if (menuVisible) return;
-                
-                const electronShell = document.querySelector(".electron-shell.svelte-9i0pj0");
-                if (!electronShell) return;
-                
-                const rect = electronShell.getBoundingClientRect();
-                const isVisible = rect.width > 0 && rect.height > 0 && 
-                                rect.top >= 0 && rect.bottom <= window.innerHeight &&
-                                rect.left >= 0 && rect.right <= window.innerWidth;
-                
-                if (!isVisible) return;
                 
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
                 
                 const centerX = viewportWidth / 2;
-                const yOffset = viewportHeight < 600 ? viewportHeight * 0.1 : 100;
-                const centerY = (viewportHeight / 2) - yOffset;
+                const centerY = (viewportHeight / 2) - 150;
                 
                 const element = document.elementFromPoint(centerX, centerY);
                 
@@ -692,7 +686,6 @@
         };
 
         let menuVisible = false;
-        let clickerPausedForMenu = false;
         
         document.addEventListener("keydown", e => {
             if (document.activeElement.tagName === 'INPUT') return;
@@ -700,19 +693,6 @@
             if (e.key === menuKey) {
                 e.preventDefault();
                 menuVisible = !menuVisible;
-                
-                if (menuVisible) {
-                    clickerPausedForMenu = true;
-                    if (centerClickInterval) {
-                        clearInterval(centerClickInterval);
-                        centerClickInterval = null;
-                    }
-                } else {
-                    clickerPausedForMenu = false;
-                    if (centerAutoClick) {
-                        setupCenterClicker();
-                    }
-                }
                 
                 Object.values(wins).forEach(w => {
                     if (menuVisible) {
